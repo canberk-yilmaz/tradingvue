@@ -1,5 +1,5 @@
 <template>
-  <div class="bg-blue-200 md:max-w-3xl mx-auto px-6 py-3">
+  <div class="md:max-w-3xl mx-auto px-6 py-3 mt-10">
     <!-- HEADER -->
 
     <!-- HEADER TITLE -->
@@ -14,7 +14,7 @@
       <section class="mr-10 w-1/3 flex flex-col items-center justify-center">
         <div class="relative inline-flex self-center mb-4">
           <select
-            v-model="firstCurrency"
+            v-model="baseCurrency"
             class="text-l font-bold rounded border-2 border-gray-600 text-gray-600 h-14 w-60 pl-5 pr-10 bg-white hover:border-gray-400 focus:outline-none appearance-none"
           >
             <option disabled selected value="null">Select Currency</option>
@@ -23,7 +23,7 @@
               v-for="(currency, symbol) in currenciesList"
               :key="symbol"
               :value="symbol"
-              :disabled="symbol === secondCurrency"
+              :disabled="symbol === quoteCurrency"
             >
               {{ currency }}
             </option>
@@ -36,7 +36,7 @@
         </div>
         <div class="relative inline-flex self-center">
           <select
-            v-model="secondCurrency"
+            v-model="quoteCurrency"
             class="text-l font-bold rounded border-2 border-gray-600 text-gray-600 h-14 w-60 pl-5 pr-10 bg-white hover:border-gray-400 focus:outline-none appearance-none"
           >
             <option disabled selected value="null">Select Currency</option>
@@ -45,7 +45,7 @@
               v-for="(currency, symbol) in currenciesList"
               :key="symbol"
               :value="symbol"
-              :disabled="symbol === firstCurrency"
+              :disabled="symbol === baseCurrency"
             >
               {{ currency }}
             </option>
@@ -59,23 +59,29 @@
       </section>
 
       <!-- RIGHT SECTION -->
-      <section class="bg-red-200 w-2/3 px-2 py-4">
-        <div v-if="firstCurrency && secondCurrency">
+      <section class="w-2/3 px-2 py-4">
+        <div v-if="(baseCurrency && quoteCurrency) || true">
           <div id="right-header" class="flex items-center">
-            <div class="currency-flag currency-flag-usd mr-2"></div>
-            <div class="currency-flag currency-flag-eur mr-2"></div>
-            <h2>Forex.com</h2>
+            <div
+              v-if="baseCurrency"
+              :class="`currency-flag currency-flag-${baseCurrency.toLowerCase()} mr-2`"
+            ></div>
+            <div
+              v-if="quoteCurrency"
+              :class="`currency-flag currency-flag-${quoteCurrency.toLowerCase()} mr-2`"
+            ></div>
+            <h2>Tradermade.com</h2>
           </div>
           <div class="currency-details flex justify-between">
-            <div class="fx-pair">
-              {{ firstCurrency }} / {{ secondCurrency }}
-            </div>
+            <div class="fx-pair">{{ baseCurrency }} / {{ quoteCurrency }}</div>
             <div class="items-end">
               <h2>Current Value $1000</h2>
               <h3>Change 123123123 (1231232%)</h3>
             </div>
           </div>
-          <div class="chart">Chart</div>
+          <div class="chart">
+            <LineChart :chartData="chartData" />
+          </div>
           <div v-if="startDate && endDate">
             Between {{ startDate }} and {{ endDate }}
           </div>
@@ -92,9 +98,6 @@
               {{ resolution }}
             </button>
           </div>
-          <pre>
-            {{ quotes }}
-          </pre>
         </div>
         <div v-else>Please select a currency pair to see data</div>
       </section>
@@ -104,10 +107,14 @@
 
 <script>
 //imports
-// import axios from "axios";
+import axios from "axios";
+import LineChart from "@/components/LineChart.vue";
 
 export default {
   name: "Home",
+  components: {
+    LineChart,
+  },
   data() {
     return {
       currenciesList: {
@@ -170,12 +177,12 @@ export default {
         ZAR: "South African Rand",
         ZWL: "Zimbabwean Dollar",
       },
-      firstCurrency: null,
-      secondCurrency: null,
+      baseCurrency: null,
+      quoteCurrency: null,
       selectedResolution: "15M",
       resolutionList: ["15M", "1H", "1D", "1W", "1M"],
-      startDate: null,
-      endDate: null,
+      startDateOfData: null,
+      endDateOfData: null,
       quotes: [
         {
           close: 1.00915,
@@ -257,6 +264,19 @@ export default {
       ],
     };
   },
+  computed: {
+    chartOptions() {
+      return {
+        responsive: true,
+      };
+    },
+    chartData() {
+      return {
+        labels: this.quotes.map((quote) => quote.date),
+        data: this.quotes.map((quote) => quote.close),
+      };
+    },
+  },
   methods: {
     // async getCurrenciesList() {
     //   try {
@@ -290,14 +310,102 @@ export default {
       //   console.log(error);
       // }
     },
+    calculateParameters() {
+      let now = new Date();
+      let isSunday = now.getDay() === 0;
+      let isSaturday = now.getDay() === 6;
+
+      let resolution = this.selectedResolution;
+      let parameters = {};
+      let endDate = new Date();
+      switch (resolution) {
+        case "15M":
+          parameters = {
+            endDate: null,
+            interval: null,
+            period: null,
+          };
+          break;
+        case "1H":
+          parameters = {
+            endDate: null,
+            interval: null,
+            period: null,
+          };
+          break;
+        case "1D":
+          endDate.setDate(endDate.getDate() - 1);
+          parameters = {
+            endDate: null,
+            interval: null,
+            period: null,
+          };
+          break;
+        case "1W":
+          endDate.setDate(endDate.getDate() - 7);
+          parameters = {
+            endDate,
+            interval: null,
+            period: null,
+          };
+          break;
+        case "1M":
+          endDate.setDate(endDate.getDate() - 30);
+          parameters = {
+            endDate,
+            interval: null,
+            period: null,
+          };
+          break;
+        default:
+          parameters = {
+            endDate: null,
+            interval: null,
+            period: null,
+          };
+          break;
+      }
+      parameters.startDate = now.toISOString().split("T")[0];
+      return parameters;
+    },
+    async getTimeSeriesDataForTwoCurrency() {
+      let { startDate, endDate, interval, period } = this.calculateParameters();
+      try {
+        const res = await axios.get(
+          `https://marketdata.tradermade.com/api/v1/timeseries?currency=USDEUR&api_key=${process.env.VUE_APP_REST_API_KEY}&start_date=${startDate}&end_date=${endDate}&format=records&interval=${interval}&period=${period}`
+        );
+        console.log("res", res);
+        this.startDateOfData = res.data.start_date;
+        this.endDateOfData = res.data.end_date;
+        this.quotes = res.data.quotes;
+        // this.currenciesList = res.data.available_currencies;
+      } catch (error) {
+        console.log(error);
+      }
+    },
   },
   created() {
     // this.getCurrenciesList();
   },
   watch: {
-    // selectedResolution(val) {
-    //   console.log("val", val);
-    // },
+    selectedResolution: {
+      handler: function (val) {
+        console.log("val", val);
+      },
+      immediate: true,
+    },
+    baseCurrency: {
+      handler: function (val) {
+        console.log("val", val);
+      },
+      immediate: true,
+    },
+    quoteCurrency: {
+      handler: function (val) {
+        console.log("val", val);
+      },
+      immediate: true,
+    },
   },
 };
 </script>
