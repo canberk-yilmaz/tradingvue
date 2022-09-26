@@ -89,6 +89,18 @@ export default {
       };
     },
   },
+  methods: {
+    reRenderChart() {
+      this.chart.data.labels = this.chartData.labels;
+      this.chart.data.datasets[0].data = this.chartData.data;
+      this.chart.data.datasets[0].backgroundColor = this.isChangePositive
+        ? "rgba(71, 183,132,.5)"
+        : "rgba(255, 0, 0,.5)";
+      this.chart.data.datasets[0].borderColor =
+        this.chart.data.datasets[0].backgroundColor;
+      this.chart.update();
+    },
+  },
   mounted() {
     const ctx = document.getElementById("line-chart");
     this.chart = new Chart(ctx, this.lineChartData);
@@ -96,14 +108,7 @@ export default {
   watch: {
     chartData: {
       handler: function () {
-        this.chart.data.labels = this.chartData.labels;
-        this.chart.data.datasets[0].data = this.chartData.data;
-        this.chart.data.datasets[0].backgroundColor = this.isChangePositive
-          ? "rgba(71, 183,132,.5)"
-          : "rgba(255, 0, 0,.5)";
-        this.chart.data.datasets[0].borderColor =
-          this.chart.data.datasets[0].backgroundColor;
-        this.chart.update();
+        this.reRenderChart();
       },
     },
   },
