@@ -1,5 +1,5 @@
 <template>
-  <div id="app" class="w-screen h-screen">
+  <div id="app" class="w-screen">
     <!-- <div id="nav"><router-link to="/">Home</router-link></div> -->
     <router-view />
   </div>
