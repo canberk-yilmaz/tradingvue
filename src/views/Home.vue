@@ -64,16 +64,9 @@
       <section class="w-2/3 px-2 py-4 shadow-xl">
         <div v-if="baseCurrency && quoteCurrency && !loading">
           <div id="right-header" class="flex items-center pt-3 px-3">
-            <div
-              v-if="baseCurrency"
-              :class="`rounded-full object-center currency-flag currency-flag-${baseCurrency.toLowerCase()} mr-2`"
-              style="height: 24px; width: 24px"
-            ></div>
-            <div
-              v-if="quoteCurrency"
-              :class="`rounded-full object-center currency-flag currency-flag-${quoteCurrency.toLowerCase()} mr-2`"
-              style="height: 24px; width: 24px"
-            ></div>
+            <CircleFlag v-if="baseCurrency" :currency="baseCurrency" />
+            <CircleFlag v-if="quoteCurrency" :currency="quoteCurrency" />
+
             <h2
               class="bg-gray-100 text-gray-500 px-4 py-1 rounded-full font-bold text-sm"
             >
@@ -85,7 +78,7 @@
               {{ baseCurrency }}/{{ quoteCurrency }}
             </div>
             <div class="items-end">
-              <h2 class="text-right font-extrabold text-2lg">
+              <h2 class="text-right font-extrabold text-2xl">
                 {{ lastPrice }}
               </h2>
               <h3
@@ -128,10 +121,10 @@
               v-for="resolution in resolutionList"
               :key="resolution"
               @click="selectResolutionMethod(resolution)"
-              class="mx-5 my-3"
-              :class="{
-                'bg-blue-200': resolution === selectedResolution,
-              }"
+              class="m-3 px-2 py-1"
+              :class="
+                resolution === selectedResolution ? 'bg-blue-300 font-bold' : ''
+              "
             >
               {{ resolution }}
             </button>
@@ -161,11 +154,14 @@ import axios from "axios";
 import LineChart from "@/components/LineChart.vue";
 import getSymbolFromCurrency from "currency-symbol-map";
 import Loading from "@/components/Loading.vue";
+import CircleFlag from "@/components/CircleFlag.vue";
+
 export default {
   name: "Home",
   components: {
     LineChart,
     Loading,
+    CircleFlag,
   },
   data() {
     return {
