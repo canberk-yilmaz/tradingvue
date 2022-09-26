@@ -14,9 +14,15 @@ export default {
       type: Object,
       default: null,
     },
+    isChangePositive: {
+      type: Boolean,
+      default: null,
+    },
   },
   data() {
-    return {};
+    return {
+      chart: null,
+    };
   },
   computed: {
     lineChartData() {
@@ -27,13 +33,25 @@ export default {
           datasets: [
             {
               data: this.chartData.data,
-              backgroundColor: "rgba(71, 183,132,.5)",
-              borderColor: "#47b784",
+              backgroundColor: this.isChangePositive
+                ? "rgba(71, 183,132,.5)"
+                : "rgba(255, 0, 0,.5)",
+              borderColor: this.isChangePositive
+                ? "rgba(71, 183,132,.5)"
+                : "rgba(255, 0, 0,.5)",
               borderWidth: 3,
             },
           ],
         },
         options: {
+          layout: {
+            padding: {
+              left: 10,
+              right: 20,
+              top: 0,
+              bottom: 0,
+            },
+          },
           responsive: true,
           lineTension: 0,
           scales: {
@@ -73,7 +91,21 @@ export default {
   },
   mounted() {
     const ctx = document.getElementById("line-chart");
-    new Chart(ctx, this.lineChartData);
+    this.chart = new Chart(ctx, this.lineChartData);
+  },
+  watch: {
+    chartData: {
+      handler: function () {
+        this.chart.data.labels = this.chartData.labels;
+        this.chart.data.datasets[0].data = this.chartData.data;
+        this.chart.data.datasets[0].backgroundColor = this.isChangePositive
+          ? "rgba(71, 183,132,.5)"
+          : "rgba(255, 0, 0,.5)";
+        this.chart.data.datasets[0].borderColor =
+          this.chart.data.datasets[0].backgroundColor;
+        this.chart.update();
+      },
+    },
   },
 };
 </script>
