@@ -1,6 +1,6 @@
 <template>
   <div
-    class="md:max-w-5xl mx-auto px-6 py-3 mt-10 flex flex-col"
+    class="md:max-w-5xl mx-auto px-6 py-3 mt-10 lg:flex flex-col"
     style="min-height: 500px"
   >
     <!-- HEADER -->
@@ -10,10 +10,15 @@
     <!-- HEADER TEXT -->
     <h3 class="text-left">Check out the current price for the currency pair</h3>
 
-    <div class="flex mt-10 text-left justify-center flex-1">
+    <div
+      ref="sectionParent"
+      class="flex flex-col lg:flex-row mt-10 text-left justify-center items-center flex-1"
+    >
       <!-- LEFT SECTION -->
       <!-- Dropdowns -->
-      <section class="mr-10 w-1/3 flex flex-col items-center justify-center">
+      <section
+        class="lg:mr-10 lg:w-1/3 flex flex-col items-center justify-center"
+      >
         <div class="relative inline-flex self-center mb-4">
           <select
             v-model="baseCurrency"
@@ -61,7 +66,7 @@
       </section>
 
       <!-- RIGHT SECTION -->
-      <section class="w-2/3 px-2 py-4 shadow-xl">
+      <section class="lg:w-2/3 w-full px-2 py-4 shadow-xl">
         <div v-if="baseCurrency && quoteCurrency && !loading">
           <div id="right-header" class="flex items-center pt-3 px-3">
             <CircleFlag v-if="baseCurrency" :currency="baseCurrency" />
@@ -179,7 +184,6 @@ export default {
   computed: {
     lastPrice() {
       let price = this.quotes?.slice(-1)[0]?.close;
-      console.log("price", price);
       // change number format to currency
       if (this.quoteCurrency && getSymbolFromCurrency(this.quoteCurrency)) {
         price = getSymbolFromCurrency(this.quoteCurrency) + " " + String(price);
@@ -362,6 +366,7 @@ export default {
   created() {
     this.getCurrenciesList();
   },
+  mounted() {},
   watch: {
     selectedResolution: {
       handler: async function () {
