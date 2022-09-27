@@ -1,6 +1,8 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import axios from "axios";
+import socketModule from "./modules/socketModule";
+
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -25,5 +27,5 @@ export default new Vuex.Store({
       }
     },
   },
-  modules: {},
+  modules: { socketModule },
 });
