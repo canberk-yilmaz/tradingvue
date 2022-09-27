@@ -1,5 +1,4 @@
 var io = require("socket.io-client");
-let counter = 0;
 function parseDate(dateString) {
   var reggie = /(\d{4})(\d{2})(\d{2})-(\d{2}):(\d{2}):(\d{2}).(\d{3})/;
   var dateArray = reggie.exec(dateString);
@@ -19,15 +18,14 @@ export default {
   state: () => ({
     socket: null,
     isConnected: false,
-    symbol: "EURUSD",
+    livePricesForSelected: null,
   }),
   actions: {
-    test() {
-      console.log("test");
-    },
-    connectWebSocket({ commit, state, rootState }) {
+    connectWebSocket({ commit, state, rootState }, symbol) {
+      commit("SET_LIVE_PRICE_FOR_SELECTED_CURRENCY", (state, null));
+      console.log("symbol", symbol);
       //check if both currencies stated
-      if (!rootState.baseCurrency && !rootState.quoteCurrency) {
+      if (rootState.baseCurrency && rootState.quoteCurrency) {
         console.log("1");
         // check if the socket is connected
         if (!state.isConnected) {
@@ -46,36 +44,34 @@ export default {
           });
 
           state.socket.on("handshake", function (msg) {
+            console.log("handsahke", symbol);
             console.log("handshake");
             console.log(msg);
             commit("SET_CONNECTION", true);
-            state.socket.emit("symbolSub", { symbol: state.symbol });
+            state.socket.emit("symbolSub", { symbol: symbol });
           });
 
           state.socket.on("price", function (message) {
             var data = message.split(" ");
-            console.log(
-              "counter",
-              counter,
-              data[0] +
-                " " +
-                data[1] +
-                " " +
-                data[2] +
-                " " +
-                data[3] +
-                " " +
-                parseDate(data[4])
-            );
-            counter++;
+            let dataObject = {
+              currencyPair: data[0],
+              ask: data[1],
+              bid: data[2],
+              mid: data[3],
+              date: parseDate(data[4]),
+            };
+            commit("SET_LIVE_PRICE_FOR_SELECTED_CURRENCY", (state, dataObject));
           });
         }
       }
     },
     disconnectWebSocket({ commit, state }) {
       if (state.isConnected) {
+        console.log("disconnection");
+        commit("SET_LIVE_PRICE_FOR_SELECTED_CURRENCY", (state, null));
         state.socket.disconnect();
         commit("SET_CONNECTION", false);
+        console.log("state.isConnected", state.isConnected);
       }
     },
   },
@@ -85,6 +81,9 @@ export default {
     },
     SET_CONNECTION(state, isConnected) {
       state.isConnected = isConnected;
+    },
+    SET_LIVE_PRICE_FOR_SELECTED_CURRENCY(state, livePricesForSelected) {
+      state.livePricesForSelected = livePricesForSelected;
     },
   },
   getters: {},
