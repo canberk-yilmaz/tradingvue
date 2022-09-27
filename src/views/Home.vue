@@ -12,7 +12,7 @@
 
     <div
       ref="sectionParent"
-      class="flex flex-col lg:flex-row mt-10 text-left justify-center items-center flex-1"
+      class="flex flex-col lg:flex-row my-10 text-left justify-center items-center flex-1"
     >
       <!-- LEFT SECTION -->
       <!-- Dropdowns -->
@@ -150,6 +150,37 @@
         </div>
       </section>
     </div>
+    <div class="shadow-2xl" v-if="livePriceForSelectedCurrency?.currencyPair">
+      <div v-if="livePriceForSelectedCurrency" class="my-10">
+        <h1 class="font-extrabold text-2xl uppercase m-2">Live Prices...</h1>
+        <h2 class="my-4 font-bold">
+          <span class="">Currency Pair: </span>
+          {{ livePriceForSelectedCurrency.currencyPair }}
+        </h2>
+        <div class="lg:flex justify-around items-center font-semibold m-2">
+          <h2
+            class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
+          >
+            Ask: {{ livePriceForSelectedCurrency.ask }}
+          </h2>
+          <h2
+            class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
+          >
+            Bid: {{ livePriceForSelectedCurrency.bid }}
+          </h2>
+          <h2
+            class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
+          >
+            Mid: {{ livePriceForSelectedCurrency.mid }}
+          </h2>
+        </div>
+      </div>
+      <div v-else class="my-10">
+        <h1 class="font-extrabold text-2xl uppercase">
+          Getting Live Prices...
+        </h1>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -183,6 +214,9 @@ export default {
   },
   computed: {
     ...mapState(["currenciesList"]),
+    livePriceForSelectedCurrency() {
+      return this.$store.state.socketModule.livePricesForSelected;
+    },
     lastPrice() {
       let price = this.quotes?.slice(-1)[0]?.close;
       // change number format to currency
@@ -219,8 +253,24 @@ export default {
     },
   },
   methods: {
-    ...mapActions(["getCurrenciesList"]),
-
+    ...mapActions([
+      "getCurrenciesList",
+      "setBaseCurrency",
+      "setQuoteCurrency",
+      "socketModule/connectWebSocket",
+      "socketModule/disconnectWebSocket",
+    ]),
+    startWebSocket() {
+      if (this.$store.state.socketModule.isConnected) {
+        console.log("already connected");
+        this["socketModule/disconnectWebSocket"]();
+      }
+      this.baseCurrency && this.quoteCurrency
+        ? this["socketModule/connectWebSocket"](
+            this.baseCurrency + this.quoteCurrency
+          )
+        : null;
+    },
     selectResolutionMethod(resolution) {
       this.selectedResolution = resolution;
     },
@@ -231,12 +281,6 @@ export default {
           break;
         case "1H":
           this.quotes = this.quotes.slice(-12);
-          break;
-        case "1D":
-          break;
-        case "1W":
-          break;
-        case "1M":
           break;
         default:
           break;
@@ -370,18 +414,22 @@ export default {
     },
     baseCurrency: {
       handler: async function () {
+        this.setBaseCurrency(this.baseCurrency);
         if (this.quoteCurrency) {
           await this.getTimeSeriesDataForTwoCurrency();
           this.stripQuotes();
+          this.startWebSocket();
         }
       },
       immediate: true,
     },
     quoteCurrency: {
       handler: async function () {
+        this.setQuoteCurrency(this.quoteCurrency);
         if (this.baseCurrency) {
           await this.getTimeSeriesDataForTwoCurrency();
           this.stripQuotes();
+          this.startWebSocket();
         }
       },
       immediate: true,
