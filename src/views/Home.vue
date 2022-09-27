@@ -150,7 +150,7 @@
         </div>
       </section>
     </div>
-    <div class="shadow-2xl" v-if="livePriceForSelectedCurrency?.currencyPair">
+    <div class="shadow-2xl" v-if="baseCurrency && quoteCurrency">
       <div v-if="livePriceForSelectedCurrency" class="my-10">
         <h1 class="font-extrabold text-2xl uppercase m-2">Live Prices...</h1>
         <h2 class="my-4 font-bold">
@@ -176,7 +176,7 @@
         </div>
       </div>
       <div v-else class="my-10">
-        <h1 class="font-extrabold text-2xl uppercase">
+        <h1 class="font-extrabold text-2xl uppercase animate-pulse">
           Getting Live Prices...
         </h1>
       </div>
@@ -264,12 +264,27 @@ export default {
       if (this.$store.state.socketModule.isConnected) {
         console.log("already connected");
         this["socketModule/disconnectWebSocket"]();
+        this.startWebSocket();
+      } else {
+        this.baseCurrency && this.quoteCurrency
+          ? this["socketModule/connectWebSocket"](
+              this.baseCurrency + this.quoteCurrency
+            )
+          : null;
       }
-      this.baseCurrency && this.quoteCurrency
-        ? this["socketModule/connectWebSocket"](
-            this.baseCurrency + this.quoteCurrency
-          )
-        : null;
+      // let checkIfDisconnected = setInterval(() => {
+      //   console.log("checking if disconnected");
+      //   if (!this.$store.state.socketModule.isConnected) {
+      //     this.baseCurrency && this.quoteCurrency
+      //       ? this["socketModule/connectWebSocket"](
+      //           this.baseCurrency + this.quoteCurrency
+      //         )
+      //       : null;
+      //     clearInterval(checkIfDisconnected);
+      //   } else {
+      //     this.startWebSocket();
+      //   }
+      // }, 1000);
     },
     selectResolutionMethod(resolution) {
       this.selectedResolution = resolution;

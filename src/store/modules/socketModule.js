@@ -69,6 +69,7 @@ export default {
       if (state.isConnected) {
         console.log("disconnection");
         commit("SET_LIVE_PRICE_FOR_SELECTED_CURRENCY", (state, null));
+        console.log("state.socket.disconnect();", state.socket.disconnect());
         state.socket.disconnect();
         commit("SET_CONNECTION", false);
         console.log("state.isConnected", state.isConnected);
