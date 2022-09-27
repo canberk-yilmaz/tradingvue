@@ -160,6 +160,7 @@ import LineChart from "@/components/LineChart.vue";
 import getSymbolFromCurrency from "currency-symbol-map";
 import Loading from "@/components/Loading.vue";
 import CircleFlag from "@/components/CircleFlag.vue";
+import { mapState, mapActions } from "vuex";
 
 export default {
   name: "Home",
@@ -170,7 +171,6 @@ export default {
   },
   data() {
     return {
-      currenciesList: null,
       baseCurrency: null,
       quoteCurrency: null,
       selectedResolution: "15M",
@@ -182,6 +182,7 @@ export default {
     };
   },
   computed: {
+    ...mapState(["currenciesList"]),
     lastPrice() {
       let price = this.quotes?.slice(-1)[0]?.close;
       // change number format to currency
@@ -218,17 +219,8 @@ export default {
     },
   },
   methods: {
-    async getCurrenciesList() {
-      try {
-        const res = await axios.get(
-          `https://marketdata.tradermade.com/api/v1/live_currencies_list?api_key=${process.env.VUE_APP_REST_API_KEY}`
-        );
-        console.log("res", res);
-        this.currenciesList = res.data.available_currencies;
-      } catch (error) {
-        console.log(error);
-      }
-    },
+    ...mapActions(["getCurrenciesList"]),
+
     selectResolutionMethod(resolution) {
       this.selectedResolution = resolution;
     },
