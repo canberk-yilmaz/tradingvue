@@ -4,13 +4,11 @@
     class="p-3 text-center text-lg font-bold"
   >
     Between
-    <span v-if="selectedResolution === '15M' || selectedResolution === '11H'">
-      {{ startDateOfData }} and {{ endDateOfData }}
-    </span>
-    <span v-else>
+    <span v-if="selectedResolution === '1W' || selectedResolution === '1M'">
       {{ startDateOfData.substring(0, 10) }} and
       {{ endDateOfData.substring(0, 10) }}
     </span>
+    <span v-else> {{ startDateOfData }} and {{ endDateOfData }} </span>
   </h1>
 </template>
 <script>
