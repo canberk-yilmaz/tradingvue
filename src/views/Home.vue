@@ -111,7 +111,7 @@ export default {
       return this.$store.state.socketModule.livePricesForSelected;
     },
     lastPrice() {
-      let price = this.filteredQuotes?.slice(-1)[0]?.close;
+      let price = this.quotes?.slice(-1)[0]?.close;
       // change number format to currency
       if (this.quoteCurrency && getSymbolFromCurrency(this.quoteCurrency)) {
         price = getSymbolFromCurrency(this.quoteCurrency) + " " + String(price);
@@ -121,8 +121,8 @@ export default {
       return price;
     },
     changeOfPrice() {
-      let lastPrice = this.filteredQuotes?.slice(-1)[0]?.close;
-      let firstPrice = this.filteredQuotes?.slice(1)[0]?.close;
+      let lastPrice = this.quotes?.slice(-1)[0]?.close;
+      let firstPrice = this.quotes?.slice(1)[0]?.close;
 
       return {
         value: Number(lastPrice - firstPrice).toFixed(6),
@@ -136,22 +136,13 @@ export default {
       };
     },
     chartData() {
-      if (this.filteredQuotes) {
+      if (this.quotes) {
         return {
-          labels: this.filteredQuotes.map((quote) => quote.date),
-          data: this.filteredQuotes.map((quote) => quote.close),
+          labels: this.quotes.map((quote) => quote.date),
+          data: this.quotes.map((quote) => quote.close),
         };
       }
       return null;
-    },
-    filteredQuotes() {
-      if (this.selectedResolution === "15M") {
-        return this.quotes.slice(-15);
-      } else if (this.selectedResolution === "1H") {
-        return this.quotes.slice(-12);
-      } else {
-        return this.quotes;
-      }
     },
   },
   methods: {
