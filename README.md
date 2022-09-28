@@ -2,10 +2,9 @@
 
 # Vue.js & WebSocket API Project
 
-## [Live Demo]()
-
+## [Live Demo](https://tradingvue.vercel.app/)
+Note: WebSocket not working in this deploy. WebSocket currently only works in local.
 ### What can you do in this project ?
-
 
 - Choose a FX Pair to see prices.
 - Choose the resolution window to see prices
@@ -24,6 +23,7 @@
     - CSS
     - HTML
 
+### You need to add REST API Key and Streaming API Key from [tradermade.com](https://tradermade.com/).
 ## Further Reading
 
 [Vue CLI](https://cli.vuejs.org/config/)
