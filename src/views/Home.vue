@@ -3,13 +3,7 @@
     class="md:max-w-5xl mx-auto px-6 py-3 mt-10 lg:flex flex-col"
     style="min-height: 500px"
   >
-    <!-- HEADER -->
-    <!-- HEADER TITLE -->
-    <h1 class="text-4xl font-bold text-left">Forex Exchange</h1>
-
-    <!-- HEADER TEXT -->
-    <h3 class="text-left">Check out the current price for the currency pair</h3>
-
+    <PageHeader />
     <div
       ref="sectionParent"
       class="flex flex-col lg:flex-row my-10 text-left justify-center items-center flex-1"
@@ -78,27 +72,10 @@
               ref="myLineChart"
             />
           </div>
-          <div class="time-frame flex items-center justify-center">
-            <button
-              v-for="resolution in resolutionList"
-              :key="resolution"
-              @click="selectResolutionMethod(resolution)"
-              class="m-3 px-2 py-1"
-              :class="
-                resolution === selectedResolution
-                  ? 'bg-blue-300 font-bold'
-                  : 'hover:text-gray-400'
-              "
-            >
-              {{ resolution }}
-            </button>
-          </div>
+          <ResolutionSelector @resolutionSelected="resolutionSelected" />
         </div>
 
-        <div
-          v-else-if="loading"
-          class="h-full flex items-center justify-center"
-        >
+        <div v-else-if="loading">
           <Loading />
         </div>
 
@@ -111,55 +88,9 @@
     </div>
 
     <div v-if="!loading">
-      <div
-        class="shadow-2xl rounded-xl"
-        v-if="$store.state.socketModule.trackLivePrices"
-      >
-        <div v-if="livePriceForSelectedCurrency" class="py-5">
-          <h1 class="font-extrabold text-2xl uppercase m-2 lg:p-2">
-            Live Prices...
-          </h1>
-          <h2 class="my-4 font-bold">
-            <span class="">Currency Pair: </span>
-            {{ livePriceForSelectedCurrency.currencyPair }}
-          </h2>
-          <div class="lg:flex justify-around items-center font-semibold m-2">
-            <h2
-              class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
-            >
-              Ask: {{ livePriceForSelectedCurrency.ask }}
-            </h2>
-            <h2
-              class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
-            >
-              Bid: {{ livePriceForSelectedCurrency.bid }}
-            </h2>
-            <h2
-              class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
-            >
-              Mid: {{ livePriceForSelectedCurrency.mid }}
-            </h2>
-          </div>
-        </div>
-        <div v-else class="my-10">
-          <h1 class="font-extrabold text-2xl uppercase animate-pulse m-2 p-2">
-            Getting Live Prices...
-          </h1>
-        </div>
-      </div>
-      <div
-        class="shadow-2xl flex items-center justify-center flex-col p-5"
-        v-else-if="baseCurrency && quoteCurrency"
-      >
-        <h1 class="p-2 m-2 font-bold">
-          Live Price Tracking Is Not Available For Selected Currency Pair
-        </h1>
-        <h2 class="p-2 m-2 font-semibold">
-          You can try to swap currencies to check again....
-        </h2>
-      </div>
+      <LivePrices />
     </div>
-    <div v-else-if="loading" class="h-full flex items-center justify-center">
+    <div v-else-if="loading">
       <Loading />
     </div>
   </div>
@@ -174,6 +105,9 @@ import Loading from "@/components/Loading.vue";
 import CircleFlag from "@/components/CircleFlag.vue";
 import { mapState, mapActions } from "vuex";
 import CurrencyPairSelectorVue from "../components/CurrencyPairSelector.vue";
+import PageHeader from "../components/PageHeader.vue";
+import ResolutionSelector from "../components/ResolutionSelector.vue";
+import LivePrices from "../components/LivePrices.vue";
 
 export default {
   name: "Home",
@@ -182,11 +116,12 @@ export default {
     Loading,
     CircleFlag,
     CurrencyPairSelectorVue,
+    PageHeader,
+    ResolutionSelector,
+    LivePrices,
   },
   data() {
     return {
-      selectedResolution: "15M",
-      resolutionList: ["15M", "1H", "1D", "1W", "1M"],
       startDateOfData: null,
       endDateOfData: null,
       quotes: null,
@@ -194,7 +129,12 @@ export default {
     };
   },
   computed: {
-    ...mapState(["currenciesList", "baseCurrency", "quoteCurrency"]),
+    ...mapState([
+      "currenciesList",
+      "baseCurrency",
+      "quoteCurrency",
+      "selectedResolution",
+    ]),
     livePriceForSelectedCurrency() {
       return this.$store.state.socketModule.livePricesForSelected;
     },
@@ -243,7 +183,6 @@ export default {
     ]),
     startWebSocket() {
       if (this.$store.state.socketModule.isConnected) {
-        console.log("already connected");
         this["socketModule/disconnectWebSocket"]();
         this.startWebSocket();
       } else {
@@ -254,18 +193,25 @@ export default {
           : null;
       }
     },
-    selectResolutionMethod(resolution) {
-      this.selectedResolution = resolution;
+    // selectResolutionMethod(resolution) {
+    //   this.selectedResolution = resolution;
+    // },
+    async resolutionSelected(resolution) {
+      this.$store.dispatch("setResolution", resolution);
+      if (this.quoteCurrency && this.baseCurrency) {
+        await this.getTimeSeriesDataForTwoCurrency();
+        this.sliceQuotes();
+      }
     },
     async currencyChanged() {
       if (this.baseCurrency && this.quoteCurrency) {
         await this.getTimeSeriesDataForTwoCurrency();
-        this.stripQuotes();
+        this.sliceQuotes();
         this.startWebSocket();
       }
     },
 
-    stripQuotes() {
+    sliceQuotes() {
       switch (this.selectedResolution) {
         case "15M":
           this.quotes = this.quotes.slice(-15);
@@ -282,8 +228,7 @@ export default {
       let isSunday = now.getDay() === 0;
       let isSaturday = now.getDay() === 6;
 
-      let resolution = this.selectedResolution;
-      console.log("res", resolution);
+      let resolution = this.$store.state.selectedResolution;
       let parameters = {};
       let startDate = new Date();
       isSaturday
@@ -363,15 +308,6 @@ export default {
 
       let { startDate, endDate, interval, period } = this.calculateParameters();
 
-      console.log("end0", endDate);
-      console.log(
-        "asd",
-        `https://marketdata.tradermade.com/api/v1/timeseries?currency=${
-          this.baseCurrency + this.quoteCurrency
-        }&api_key=${
-          process.env.VUE_APP_REST_API_KEY
-        }&start_date=${startDate}&end_date=${endDate}&format=records&interval=${interval}&period=${period}`
-      );
       try {
         const res = await axios.get(
           `https://marketdata.tradermade.com/api/v1/timeseries?currency=${
@@ -380,7 +316,6 @@ export default {
             process.env.VUE_APP_REST_API_KEY
           }&start_date=${startDate}&end_date=${endDate}&format=records&interval=${interval}&period=${period}`
         );
-        console.log("res", res);
         this.startDateOfData = res.data.start_date;
         this.endDateOfData = res.data.end_date;
         this.quotes = res.data.quotes;
@@ -392,17 +327,6 @@ export default {
   },
   created() {
     this.getCurrenciesList();
-  },
-  mounted() {},
-  watch: {
-    selectedResolution: {
-      handler: async function () {
-        if (this.quoteCurrency && this.baseCurrency) {
-          await this.getTimeSeriesDataForTwoCurrency();
-          this.stripQuotes();
-        }
-      },
-    },
   },
 };
 </script>

@@ -10,6 +10,8 @@ export default new Vuex.Store({
     currenciesList: null,
     baseCurrency: null,
     quoteCurrency: null,
+    selectedResolution: "15M",
+    resolutionList: ["15M", "1H", "1D", "1W", "1M"],
   },
   mutations: {
     SET_CURRENCIES_LIST(state, currenciesList) {
@@ -21,8 +23,14 @@ export default new Vuex.Store({
     SET_QUOTE_CURRENCY(state, quoteCurrency) {
       state.quoteCurrency = quoteCurrency;
     },
+    SET_RESOLUTION(state, resolution) {
+      state.selectedResolution = resolution;
+    },
   },
   actions: {
+    setResolution({ commit }, resolution) {
+      commit("SET_RESOLUTION", resolution);
+    },
     swapCurrencies({ commit, state }) {
       let tempBaseCurrency = state.baseCurrency;
       commit("SET_BASE_CURRENCY", state.quoteCurrency);
