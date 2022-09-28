@@ -44,7 +44,7 @@
         Live Price Tracking Is Not Available For Selected Currency Pair
       </h1>
       <h2 class="p-2 m-2 font-semibold">
-        You can try to swap currencies to check again....
+        You can try to swap currencies and check again....
       </h2>
     </div>
   </div>

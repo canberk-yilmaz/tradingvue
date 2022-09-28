@@ -1,17 +1,17 @@
 <template>
-  <div
-    class="md:max-w-5xl mx-auto px-6 py-3 mt-10 lg:flex flex-col"
-    style="min-height: 500px"
-  >
+  <!-- Container -->
+  <div class="md:max-w-5xl mx-auto px-6 py-3 mt-10 lg:flex flex-col">
+    <!-- Header and Subtext -->
     <PageHeader />
+    <!-- CURRENCY PAIR SELECTION AND FX INFO -->
     <div
-      ref="sectionParent"
       class="flex flex-col lg:flex-row my-10 text-left justify-center items-center flex-1"
       style="min-height: 560px"
     >
       <!-- LEFT SECTION -->
       <!-- Dropdowns -->
       <CurrencyPairSelectorVue @currencyChanged="currencyChanged" />
+      <!-- LEFT SECTION END-->
 
       <!-- RIGHT SECTION -->
       <section
@@ -22,49 +22,13 @@
           <div id="right-header" class="flex items-center pt-3 px-3">
             <CircleFlag v-if="baseCurrency" :currency="baseCurrency" />
             <CircleFlag v-if="quoteCurrency" :currency="quoteCurrency" />
-
-            <h2
-              class="bg-gray-100 text-gray-500 px-4 py-1 rounded-full font-bold text-sm"
-            >
-              Tradermade.com
-            </h2>
+            <DataSourceInfo dataSource="Tradermade.com" />
           </div>
-          <div class="currency-details flex justify-between p-3">
-            <div class="fx-pair font-extrabold text-2xl">
-              {{ baseCurrency }}/{{ quoteCurrency }}
-            </div>
-            <div class="items-end">
-              <h2 class="text-right font-extrabold text-2xl">
-                {{ lastPrice }}
-              </h2>
-              <h3
-                class="font-bold text-right"
-                :class="
-                  changeOfPrice.value > 0 ? 'text-green-400' : 'text-red-400'
-                "
-              >
-                <span>{{ changeOfPrice.value }}</span>
-                <span> ({{ changeOfPrice.percentage }})% </span>
-              </h3>
-            </div>
-          </div>
-          <h1
-            v-if="startDateOfData && endDateOfData"
-            class="p-3 text-center text-lg font-bold"
-          >
-            Between
-            <span
-              v-if="
-                selectedResolution === '15M' || selectedResolution === '11H'
-              "
-            >
-              {{ startDateOfData }} and {{ endDateOfData }}
-            </span>
-            <span v-else>
-              {{ startDateOfData.substring(0, 10) }} and
-              {{ endDateOfData.substring(0, 10) }}
-            </span>
-          </h1>
+          <FxDetails :lastPrice="lastPrice" :changeOfPrice="changeOfPrice" />
+          <DateInfo
+            :startDateOfData="startDateOfData"
+            :endDateOfData="endDateOfData"
+          />
           <div v-if="chartData" class="chart px-3">
             <LineChart
               :chartData="chartData"
@@ -85,15 +49,19 @@
           </span>
         </div>
       </section>
+      <!-- RIGHT SECTION END-->
     </div>
-
+    <!-- CURRENCY PAIR SELECTION AND FX INFO END -->
+    <!-- LIVE PRICES -->
     <div v-if="!loading">
       <LivePrices />
     </div>
     <div v-else-if="loading">
       <Loading />
     </div>
+    <!-- LIVE PRICES END -->
   </div>
+  <!-- Container END -->
 </template>
 
 <script>
@@ -108,6 +76,9 @@ import CurrencyPairSelectorVue from "../components/CurrencyPairSelector.vue";
 import PageHeader from "../components/PageHeader.vue";
 import ResolutionSelector from "../components/ResolutionSelector.vue";
 import LivePrices from "../components/LivePrices.vue";
+import FxDetails from "../components/FxDetails.vue";
+import DataSourceInfo from "../components/DataSourceInfo.vue";
+import DateInfo from "../components/DateInfo.vue";
 
 export default {
   name: "Home",
@@ -119,6 +90,9 @@ export default {
     PageHeader,
     ResolutionSelector,
     LivePrices,
+    FxDetails,
+    DataSourceInfo,
+    DateInfo,
   },
   data() {
     return {
