@@ -12,7 +12,8 @@ export default function calculateParameters(resolution) {
     : startDate;
   switch (resolution) {
     case "15M":
-      startDate.setDate(startDate.getDate() - 1);
+      startDate = new Date(startDate - 15 * 60 * 1000);
+      //15min before
       parameters = {
         startDate,
         interval: "minute",
@@ -20,7 +21,8 @@ export default function calculateParameters(resolution) {
       };
       break;
     case "1H":
-      startDate.setDate(startDate.getDate() - 1);
+      startDate = new Date(startDate - 60 * 60 * 1000);
+      //1hour before
       parameters = {
         startDate,
         interval: "minute",
@@ -28,7 +30,8 @@ export default function calculateParameters(resolution) {
       };
       break;
     case "1D":
-      startDate.setDate(startDate.getDate() - 1);
+      startDate = new Date(startDate - 24 * 60 * 60 * 1000);
+      //24hour before
       parameters = {
         startDate,
         interval: "hourly",
@@ -72,6 +75,18 @@ export default function calculateParameters(resolution) {
         .toISOString()
         .split(".")[0]
         .replace("T", " "));
-  parameters.startDate = parameters.startDate?.toISOString().split("T")[0];
+  if (parameters.interval === "daily") {
+    parameters.endDate = getFridayIfWeekendOrNow.toISOString().split("T")[0];
+    parameters.startDate = parameters.startDate?.toISOString().split("T")[0];
+  } else {
+    parameters.endDate = getFridayIfWeekendOrNow
+      .toISOString()
+      .split(".")[0]
+      .replace("T", " ");
+    parameters.startDate = parameters.startDate
+      ?.toISOString()
+      .split(".")[0]
+      .replace("T", " ");
+  }
   return parameters;
 }
