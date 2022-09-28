@@ -16,19 +16,15 @@
 <script>
 export default {
   name: "DateInfo",
-  props: {
-    startDateOfData: {
-      type: String,
-      default: null,
-    },
-    endDateOfData: {
-      type: String,
-      default: null,
-    },
-  },
   computed: {
     selectedResolution() {
       return this.$store.state.currencyModule.selectedResolution;
+    },
+    startDateOfData() {
+      return this.$store.state.currencyModule.startDateOfData;
+    },
+    endDateOfData() {
+      return this.$store.state.currencyModule.endDateOfData;
     },
   },
 };

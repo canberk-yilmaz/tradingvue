@@ -25,10 +25,7 @@
             <DataSourceInfo dataSource="Tradermade.com" />
           </div>
           <FxDetails :lastPrice="lastPrice" :changeOfPrice="changeOfPrice" />
-          <DateInfo
-            :startDateOfData="startDateOfData"
-            :endDateOfData="endDateOfData"
-          />
+          <DateInfo />
           <div v-if="chartData" class="chart px-3">
             <LineChart
               :chartData="chartData"
@@ -99,10 +96,7 @@ export default {
     DateInfo,
   },
   data() {
-    return {
-      startDateOfData: null,
-      endDateOfData: null,
-    };
+    return {};
   },
   computed: {
     ...mapState({

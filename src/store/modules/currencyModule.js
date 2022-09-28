@@ -10,6 +10,8 @@ export default {
     resolutionList: ["15M", "1H", "1D", "1W", "1M"],
     quotes: [],
     loading: false,
+    startDateOfData: null,
+    endDateOfData: null,
   }),
   actions: {
     setResolution({ commit }, resolution) {
@@ -78,10 +80,10 @@ export default {
       state.loading = loading;
     },
     SET_START_DATE(state, startDate) {
-      state.startDate = startDate;
+      state.startDateOfData = startDate;
     },
     SET_END_DATE(state, endDate) {
-      state.endDate = endDate;
+      state.endDateOfData = endDate;
     },
   },
   getters: {},
