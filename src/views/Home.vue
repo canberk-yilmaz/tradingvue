@@ -13,60 +13,17 @@
     <div
       ref="sectionParent"
       class="flex flex-col lg:flex-row my-10 text-left justify-center items-center flex-1"
+      style="min-height: 560px"
     >
       <!-- LEFT SECTION -->
       <!-- Dropdowns -->
-      <section
-        class="lg:mr-10 lg:w-1/3 flex flex-col items-center justify-center"
-      >
-        <div class="relative inline-flex self-center mb-4">
-          <select
-            v-model="baseCurrency"
-            class="text-l font-bold rounded border-2 border-gray-600 text-gray-600 h-14 w-60 pl-5 pr-10 bg-white hover:border-gray-400 focus:outline-none appearance-none"
-          >
-            <option disabled selected value="null">Select Currency</option>
-
-            <option
-              v-for="(currency, symbol) in currenciesList"
-              :key="symbol"
-              :value="symbol"
-              :disabled="symbol === quoteCurrency"
-            >
-              {{ currency }}
-            </option>
-          </select>
-          <img
-            src="@/assets/dropdown-arrow.svg"
-            alt="dropdown-arrow"
-            class="absolute h-10 w-10 top-0 right-0 m-2 pointer-events-none p-2 rounded"
-          />
-        </div>
-        <div class="relative inline-flex self-center">
-          <select
-            v-model="quoteCurrency"
-            class="text-l font-bold rounded border-2 border-gray-600 text-gray-600 h-14 w-60 pl-5 pr-10 bg-white hover:border-gray-400 focus:outline-none appearance-none"
-          >
-            <option disabled selected value="null">Select Currency</option>
-
-            <option
-              v-for="(currency, symbol) in currenciesList"
-              :key="symbol"
-              :value="symbol"
-              :disabled="symbol === baseCurrency"
-            >
-              {{ currency }}
-            </option>
-          </select>
-          <img
-            src="@/assets/dropdown-arrow.svg"
-            alt="dropdown-arrow"
-            class="absolute h-10 w-10 top-0 right-0 m-2 pointer-events-none p-2 rounded"
-          />
-        </div>
-      </section>
+      <CurrencyPairSelectorVue @currencyChanged="currencyChanged" />
 
       <!-- RIGHT SECTION -->
-      <section class="lg:w-2/3 w-full px-2 py-4 shadow-xl">
+      <section
+        class="lg:w-2/3 w-full px-2 py-4"
+        :class="!loading ? 'shadow-xl rounded-xl' : ''"
+      >
         <div v-if="baseCurrency && quoteCurrency && !loading">
           <div id="right-header" class="flex items-center pt-3 px-3">
             <CircleFlag v-if="baseCurrency" :currency="baseCurrency" />
@@ -128,7 +85,9 @@
               @click="selectResolutionMethod(resolution)"
               class="m-3 px-2 py-1"
               :class="
-                resolution === selectedResolution ? 'bg-blue-300 font-bold' : ''
+                resolution === selectedResolution
+                  ? 'bg-blue-300 font-bold'
+                  : 'hover:text-gray-400'
               "
             >
               {{ resolution }}
@@ -150,36 +109,58 @@
         </div>
       </section>
     </div>
-    <div class="shadow-2xl" v-if="baseCurrency && quoteCurrency">
-      <div v-if="livePriceForSelectedCurrency" class="my-10">
-        <h1 class="font-extrabold text-2xl uppercase m-2">Live Prices...</h1>
-        <h2 class="my-4 font-bold">
-          <span class="">Currency Pair: </span>
-          {{ livePriceForSelectedCurrency.currencyPair }}
-        </h2>
-        <div class="lg:flex justify-around items-center font-semibold m-2">
-          <h2
-            class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
-          >
-            Ask: {{ livePriceForSelectedCurrency.ask }}
+
+    <div v-if="!loading">
+      <div
+        class="shadow-2xl rounded-xl"
+        v-if="$store.state.socketModule.trackLivePrices"
+      >
+        <div v-if="livePriceForSelectedCurrency" class="py-5">
+          <h1 class="font-extrabold text-2xl uppercase m-2 lg:p-2">
+            Live Prices...
+          </h1>
+          <h2 class="my-4 font-bold">
+            <span class="">Currency Pair: </span>
+            {{ livePriceForSelectedCurrency.currencyPair }}
           </h2>
-          <h2
-            class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
-          >
-            Bid: {{ livePriceForSelectedCurrency.bid }}
-          </h2>
-          <h2
-            class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
-          >
-            Mid: {{ livePriceForSelectedCurrency.mid }}
-          </h2>
+          <div class="lg:flex justify-around items-center font-semibold m-2">
+            <h2
+              class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
+            >
+              Ask: {{ livePriceForSelectedCurrency.ask }}
+            </h2>
+            <h2
+              class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
+            >
+              Bid: {{ livePriceForSelectedCurrency.bid }}
+            </h2>
+            <h2
+              class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
+            >
+              Mid: {{ livePriceForSelectedCurrency.mid }}
+            </h2>
+          </div>
+        </div>
+        <div v-else class="my-10">
+          <h1 class="font-extrabold text-2xl uppercase animate-pulse m-2 p-2">
+            Getting Live Prices...
+          </h1>
         </div>
       </div>
-      <div v-else class="my-10">
-        <h1 class="font-extrabold text-2xl uppercase animate-pulse">
-          Getting Live Prices...
+      <div
+        class="shadow-2xl flex items-center justify-center flex-col p-5"
+        v-else-if="baseCurrency && quoteCurrency"
+      >
+        <h1 class="p-2 m-2 font-bold">
+          Live Price Tracking Is Not Available For Selected Currency Pair
         </h1>
+        <h2 class="p-2 m-2 font-semibold">
+          You can try to swap currencies to check again....
+        </h2>
       </div>
+    </div>
+    <div v-else-if="loading" class="h-full flex items-center justify-center">
+      <Loading />
     </div>
   </div>
 </template>
@@ -192,6 +173,7 @@ import getSymbolFromCurrency from "currency-symbol-map";
 import Loading from "@/components/Loading.vue";
 import CircleFlag from "@/components/CircleFlag.vue";
 import { mapState, mapActions } from "vuex";
+import CurrencyPairSelectorVue from "../components/CurrencyPairSelector.vue";
 
 export default {
   name: "Home",
@@ -199,11 +181,10 @@ export default {
     LineChart,
     Loading,
     CircleFlag,
+    CurrencyPairSelectorVue,
   },
   data() {
     return {
-      baseCurrency: null,
-      quoteCurrency: null,
       selectedResolution: "15M",
       resolutionList: ["15M", "1H", "1D", "1W", "1M"],
       startDateOfData: null,
@@ -213,7 +194,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["currenciesList"]),
+    ...mapState(["currenciesList", "baseCurrency", "quoteCurrency"]),
     livePriceForSelectedCurrency() {
       return this.$store.state.socketModule.livePricesForSelected;
     },
@@ -272,23 +253,18 @@ export default {
             )
           : null;
       }
-      // let checkIfDisconnected = setInterval(() => {
-      //   console.log("checking if disconnected");
-      //   if (!this.$store.state.socketModule.isConnected) {
-      //     this.baseCurrency && this.quoteCurrency
-      //       ? this["socketModule/connectWebSocket"](
-      //           this.baseCurrency + this.quoteCurrency
-      //         )
-      //       : null;
-      //     clearInterval(checkIfDisconnected);
-      //   } else {
-      //     this.startWebSocket();
-      //   }
-      // }, 1000);
     },
     selectResolutionMethod(resolution) {
       this.selectedResolution = resolution;
     },
+    async currencyChanged() {
+      if (this.baseCurrency && this.quoteCurrency) {
+        await this.getTimeSeriesDataForTwoCurrency();
+        this.stripQuotes();
+        this.startWebSocket();
+      }
+    },
+
     stripQuotes() {
       switch (this.selectedResolution) {
         case "15M":
@@ -426,28 +402,6 @@ export default {
           this.stripQuotes();
         }
       },
-    },
-    baseCurrency: {
-      handler: async function () {
-        this.setBaseCurrency(this.baseCurrency);
-        if (this.quoteCurrency) {
-          await this.getTimeSeriesDataForTwoCurrency();
-          this.stripQuotes();
-          this.startWebSocket();
-        }
-      },
-      immediate: true,
-    },
-    quoteCurrency: {
-      handler: async function () {
-        this.setQuoteCurrency(this.quoteCurrency);
-        if (this.baseCurrency) {
-          await this.getTimeSeriesDataForTwoCurrency();
-          this.stripQuotes();
-          this.startWebSocket();
-        }
-      },
-      immediate: true,
     },
   },
 };
