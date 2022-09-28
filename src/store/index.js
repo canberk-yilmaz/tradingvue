@@ -23,6 +23,11 @@ export default new Vuex.Store({
     },
   },
   actions: {
+    swapCurrencies({ commit, state }) {
+      let tempBaseCurrency = state.baseCurrency;
+      commit("SET_BASE_CURRENCY", state.quoteCurrency);
+      commit("SET_QUOTE_CURRENCY", tempBaseCurrency);
+    },
     setBaseCurrency({ commit }, baseCurrency) {
       commit("SET_BASE_CURRENCY", baseCurrency);
     },
