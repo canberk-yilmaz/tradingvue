@@ -5,7 +5,7 @@
       v-if="$store.state.socketModule.trackLivePrices"
     >
       <div v-if="livePriceForSelectedCurrency" class="py-5">
-        <h1 class="font-extrabold text-2xl uppercase m-2 lg:p-2">
+        <h1 class="font-extrabold text-2xl uppercase m-2 lg:p-2 animate-pulse">
           Live Prices...
         </h1>
         <h2 class="my-4 font-bold">
@@ -14,19 +14,19 @@
         </h2>
         <div class="lg:flex justify-around items-center font-semibold m-2">
           <h2
-            class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
+            class="p-4 m-2 lg:mx-0 mx-auto shadow-md rounded-xl w-min bg-gray-50"
           >
-            Ask: {{ livePriceForSelectedCurrency.ask }}
+            Ask: {{ livePriceForSelectedCurrency.ask | changeDecimals(5) }}
           </h2>
           <h2
-            class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
+            class="p-4 m-2 lg:mx-0 mx-auto shadow-md rounded-xl w-min bg-gray-50"
           >
-            Bid: {{ livePriceForSelectedCurrency.bid }}
+            Bid: {{ livePriceForSelectedCurrency.bid | changeDecimals(5) }}
           </h2>
           <h2
-            class="flex items-center justify-center p-4 m-2 shadow-md rounded-xl bg-gray-50"
+            class="p-4 m-2 lg:mx-0 mx-auto shadow-md rounded-xl w-min bg-gray-50"
           >
-            Mid: {{ livePriceForSelectedCurrency.mid }}
+            Mid: {{ livePriceForSelectedCurrency.mid | changeDecimals(5) }}
           </h2>
         </div>
       </div>
@@ -58,10 +58,10 @@ export default {
       return this.$store.state.socketModule.livePricesForSelected;
     },
     baseCurrency() {
-      return this.$store.state.baseCurrency;
+      return this.$store.state.currencyModule.baseCurrency;
     },
     quoteCurrency() {
-      return this.$store.state.quoteCurrency;
+      return this.$store.state.currencyModule.quoteCurrency;
     },
   },
 };
