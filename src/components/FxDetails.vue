@@ -33,10 +33,10 @@ export default {
   },
   computed: {
     baseCurrency() {
-      return this.$store.state.baseCurrency;
+      return this.$store.state.currencyModule.baseCurrency;
     },
     quoteCurrency() {
-      return this.$store.state.quoteCurrency;
+      return this.$store.state.currencyModule.quoteCurrency;
     },
   },
 };

@@ -28,7 +28,7 @@ export default {
   },
   computed: {
     selectedResolution() {
-      return this.$store.state.selectedResolution;
+      return this.$store.state.currencyModule.selectedResolution;
     },
   },
 };

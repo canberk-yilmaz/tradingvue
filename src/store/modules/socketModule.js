@@ -42,7 +42,10 @@ export default {
       commit("SET_LIVE_PRICE_FOR_SELECTED_CURRENCY", (state, null));
       console.log("symbol", symbol);
       //check if both currencies stated
-      if (rootState.baseCurrency && rootState.quoteCurrency) {
+      if (
+        rootState.currencyModule.baseCurrency &&
+        rootState.currencyModule.quoteCurrency
+      ) {
         console.log("1");
         // check if the socket is connected
         if (!state.isConnected) {

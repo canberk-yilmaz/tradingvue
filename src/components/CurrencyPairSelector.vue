@@ -72,8 +72,8 @@ export default {
     swapCurrencies() {
       console.log("swap");
       this.$store.dispatch("swapCurrencies");
-      this.baseCurrency = this.$store.state.baseCurrency;
-      this.quoteCurrency = this.$store.state.quoteCurrency;
+      this.baseCurrency = this.$store.state.currencyModule.baseCurrency;
+      this.quoteCurrency = this.$store.state.currencyModule.quoteCurrency;
       // let tempBaseCurrency = this.baseCurrency;
       // this.setBaseCurrency(this.quoteCurrency);
       // this.setQuoteCurrency(tempBaseCurrency);
@@ -84,7 +84,7 @@ export default {
       return Boolean(this.baseCurrency) && Boolean(this.quoteCurrency);
     },
     currenciesList() {
-      return this.$store.state.currenciesList;
+      return this.$store.state.currencyModule.currenciesList;
     },
   },
   watch: {

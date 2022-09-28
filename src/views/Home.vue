@@ -105,14 +105,14 @@ export default {
     };
   },
   computed: {
-    ...mapState([
-      "currenciesList",
-      "baseCurrency",
-      "quoteCurrency",
-      "selectedResolution",
-      "quotes",
-      "loading",
-    ]),
+    ...mapState({
+      currenciesList: (state) => state.currencyModule.currenciesList,
+      baseCurrency: (state) => state.currencyModule.baseCurrency,
+      quoteCurrency: (state) => state.currencyModule.quoteCurrency,
+      selectedResolution: (state) => state.currencyModule.selectedResolution,
+      quotes: (state) => state.currencyModule.quotes,
+      loading: (state) => state.currencyModule.loading,
+    }),
     livePriceForSelectedCurrency() {
       return this.$store.state.socketModule.livePricesForSelected;
     },

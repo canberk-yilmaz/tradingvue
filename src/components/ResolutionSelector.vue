@@ -29,10 +29,10 @@ export default {
   },
   computed: {
     selectedResolution() {
-      return this.$store.state.selectedResolution;
+      return this.$store.state.currencyModule.selectedResolution;
     },
     resolutionList() {
-      return this.$store.state.resolutionList;
+      return this.$store.state.currencyModule.resolutionList;
     },
   },
 };
