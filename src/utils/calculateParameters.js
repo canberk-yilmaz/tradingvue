@@ -1,5 +1,4 @@
 export default function calculateParameters(resolution) {
-  console.log("asd");
   let now = new Date();
   let isSunday = now.getDay() === 0;
   let isSaturday = now.getDay() === 6;

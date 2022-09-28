@@ -17,7 +17,6 @@ function parseDate(dateString) {
 
 function canSymbolBeTracked(currencyPair) {
   if (availablePairsForLive.includes(currencyPair)) {
-    console.log("just checking", currencyPair);
     return true;
   }
   return false;
@@ -33,23 +32,19 @@ export default {
   }),
   actions: {
     connectWebSocket({ commit, state, rootState }, symbol) {
-      console.log("canSymbolBeTracked(symbol)", canSymbolBeTracked(symbol));
       if (!canSymbolBeTracked(symbol)) {
         commit("SET_CAN_SYMBOL_BE_TRACKED", false);
         return;
       }
       commit("SET_CAN_SYMBOL_BE_TRACKED", true);
       commit("SET_LIVE_PRICE_FOR_SELECTED_CURRENCY", (state, null));
-      console.log("symbol", symbol);
       //check if both currencies stated
       if (
         rootState.currencyModule.baseCurrency &&
         rootState.currencyModule.quoteCurrency
       ) {
-        console.log("1");
         // check if the socket is connected
         if (!state.isConnected) {
-          console.log("2");
           // connect to the socket
           commit(
             "SET_SOCKET",
@@ -64,7 +59,6 @@ export default {
           });
 
           state.socket.on("handshake", function (msg) {
-            console.log("handsahke", symbol);
             console.log("handshake");
             console.log(msg);
             commit("SET_CONNECTION", true);
@@ -89,10 +83,8 @@ export default {
       if (state.isConnected) {
         console.log("disconnection");
         commit("SET_LIVE_PRICE_FOR_SELECTED_CURRENCY", (state, null));
-        console.log("state.socket.disconnect();", state.socket.disconnect());
         state.socket.disconnect();
         commit("SET_CONNECTION", false);
-        console.log("state.isConnected", state.isConnected);
       }
     },
   },

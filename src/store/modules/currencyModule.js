@@ -31,14 +31,12 @@ export default {
         const res = await axios.get(
           `https://marketdata.tradermade.com/api/v1/live_currencies_list?api_key=${process.env.VUE_APP_REST_API_KEY}`
         );
-        console.log("res store", res);
         commit("SET_CURRENCIES_LIST", res.data.available_currencies);
       } catch (error) {
         console.log(error);
       }
     },
     async getTimeSeriesDataForTwoCurrency({ commit, state }) {
-      console.log("state", state);
       commit("SET_LOADING", true);
       let { startDate, endDate, interval, period } = calculateParameters(
         state.selectedResolution
