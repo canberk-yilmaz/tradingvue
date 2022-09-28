@@ -1,4 +1,6 @@
 var io = require("socket.io-client");
+var { availablePairsForLive } = require("../../utils/availablePairsForLive");
+
 function parseDate(dateString) {
   var reggie = /(\d{4})(\d{2})(\d{2})-(\d{2}):(\d{2}):(\d{2}).(\d{3})/;
   var dateArray = reggie.exec(dateString);
@@ -13,15 +15,30 @@ function parseDate(dateString) {
   return dateObject;
 }
 
+function canSymbolBeTracked(currencyPair) {
+  if (availablePairsForLive.includes(currencyPair)) {
+    console.log("just checking", currencyPair);
+    return true;
+  }
+  return false;
+}
+
 export default {
   namespaced: true,
   state: () => ({
     socket: null,
     isConnected: false,
     livePricesForSelected: null,
+    trackLivePrices: false,
   }),
   actions: {
     connectWebSocket({ commit, state, rootState }, symbol) {
+      console.log("canSymbolBeTracked(symbol)", canSymbolBeTracked(symbol));
+      if (!canSymbolBeTracked(symbol)) {
+        commit("SET_CAN_SYMBOL_BE_TRACKED", false);
+        return;
+      }
+      commit("SET_CAN_SYMBOL_BE_TRACKED", true);
       commit("SET_LIVE_PRICE_FOR_SELECTED_CURRENCY", (state, null));
       console.log("symbol", symbol);
       //check if both currencies stated
@@ -85,6 +102,9 @@ export default {
     },
     SET_LIVE_PRICE_FOR_SELECTED_CURRENCY(state, livePricesForSelected) {
       state.livePricesForSelected = livePricesForSelected;
+    },
+    SET_CAN_SYMBOL_BE_TRACKED(state, payload) {
+      state.trackLivePrices = payload;
     },
   },
   getters: {},
