@@ -2,6 +2,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 import axios from "axios";
 import socketModule from "./modules/socketModule";
+import calculateParameters from "../utils/calculateParameters";
 
 Vue.use(Vuex);
 
@@ -12,6 +13,8 @@ export default new Vuex.Store({
     quoteCurrency: null,
     selectedResolution: "15M",
     resolutionList: ["15M", "1H", "1D", "1W", "1M"],
+    quotes: [],
+    loading: false,
   },
   mutations: {
     SET_CURRENCIES_LIST(state, currenciesList) {
@@ -25,6 +28,18 @@ export default new Vuex.Store({
     },
     SET_RESOLUTION(state, resolution) {
       state.selectedResolution = resolution;
+    },
+    SET_QUOTES(state, quotes) {
+      state.quotes = quotes;
+    },
+    SET_LOADING(state, loading) {
+      state.loading = loading;
+    },
+    SET_START_DATE(state, startDate) {
+      state.startDate = startDate;
+    },
+    SET_END_DATE(state, endDate) {
+      state.endDate = endDate;
     },
   },
   actions: {
@@ -49,6 +64,28 @@ export default new Vuex.Store({
         );
         console.log("res store", res);
         commit("SET_CURRENCIES_LIST", res.data.available_currencies);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    async getTimeSeriesDataForTwoCurrency({ commit, state }) {
+      console.log("state", state);
+      commit("SET_LOADING", true);
+      let { startDate, endDate, interval, period } = calculateParameters(
+        state.selectedResolution
+      );
+      try {
+        const res = await axios.get(
+          `https://marketdata.tradermade.com/api/v1/timeseries?currency=${
+            state.baseCurrency + state.quoteCurrency
+          }&api_key=${
+            process.env.VUE_APP_REST_API_KEY
+          }&start_date=${startDate}&end_date=${endDate}&format=records&interval=${interval}&period=${period}`
+        );
+        commit("SET_START_DATE", res.data.start_date);
+        commit("SET_END_DATE", res.data.end_date);
+        commit("SET_QUOTES", res.data.quotes);
+        commit("SET_LOADING", false);
       } catch (error) {
         console.log(error);
       }

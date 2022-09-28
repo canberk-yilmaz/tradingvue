@@ -66,12 +66,13 @@
 
 <script>
 //imports
-import axios from "axios";
-import LineChart from "@/components/LineChart.vue";
+// package imports
 import getSymbolFromCurrency from "currency-symbol-map";
+
+// component imports
+import LineChart from "@/components/LineChart.vue";
 import Loading from "@/components/Loading.vue";
 import CircleFlag from "@/components/CircleFlag.vue";
-import { mapState, mapActions } from "vuex";
 import CurrencyPairSelectorVue from "../components/CurrencyPairSelector.vue";
 import PageHeader from "../components/PageHeader.vue";
 import ResolutionSelector from "../components/ResolutionSelector.vue";
@@ -79,6 +80,9 @@ import LivePrices from "../components/LivePrices.vue";
 import FxDetails from "../components/FxDetails.vue";
 import DataSourceInfo from "../components/DataSourceInfo.vue";
 import DateInfo from "../components/DateInfo.vue";
+
+// vue imports
+import { mapState, mapActions } from "vuex";
 
 export default {
   name: "Home",
@@ -98,8 +102,6 @@ export default {
     return {
       startDateOfData: null,
       endDateOfData: null,
-      quotes: null,
-      loading: false,
     };
   },
   computed: {
@@ -108,12 +110,14 @@ export default {
       "baseCurrency",
       "quoteCurrency",
       "selectedResolution",
+      "quotes",
+      "loading",
     ]),
     livePriceForSelectedCurrency() {
       return this.$store.state.socketModule.livePricesForSelected;
     },
     lastPrice() {
-      let price = this.quotes?.slice(-1)[0]?.close;
+      let price = this.filteredQuotes?.slice(-1)[0]?.close;
       // change number format to currency
       if (this.quoteCurrency && getSymbolFromCurrency(this.quoteCurrency)) {
         price = getSymbolFromCurrency(this.quoteCurrency) + " " + String(price);
@@ -123,8 +127,8 @@ export default {
       return price;
     },
     changeOfPrice() {
-      let lastPrice = this.quotes?.slice(-1)[0].close;
-      let firstPrice = this.quotes?.slice(1)[0].close;
+      let lastPrice = this.filteredQuotes?.slice(-1)[0]?.close;
+      let firstPrice = this.filteredQuotes?.slice(1)[0]?.close;
 
       return {
         value: Number(lastPrice - firstPrice).toFixed(6),
@@ -138,13 +142,22 @@ export default {
       };
     },
     chartData() {
-      if (this.quotes) {
+      if (this.filteredQuotes) {
         return {
-          labels: this.quotes.map((quote) => quote.date),
-          data: this.quotes.map((quote) => quote.close),
+          labels: this.filteredQuotes.map((quote) => quote.date),
+          data: this.filteredQuotes.map((quote) => quote.close),
         };
       }
       return null;
+    },
+    filteredQuotes() {
+      if (this.selectedResolution === "15M") {
+        return this.quotes.slice(-15);
+      } else if (this.selectedResolution === "1H") {
+        return this.quotes.slice(-12);
+      } else {
+        return this.quotes;
+      }
     },
   },
   methods: {
@@ -152,6 +165,7 @@ export default {
       "getCurrenciesList",
       "setBaseCurrency",
       "setQuoteCurrency",
+      "getTimeSeriesDataForTwoCurrency",
       "socketModule/connectWebSocket",
       "socketModule/disconnectWebSocket",
     ]),
@@ -174,128 +188,12 @@ export default {
       this.$store.dispatch("setResolution", resolution);
       if (this.quoteCurrency && this.baseCurrency) {
         await this.getTimeSeriesDataForTwoCurrency();
-        this.sliceQuotes();
       }
     },
     async currencyChanged() {
       if (this.baseCurrency && this.quoteCurrency) {
         await this.getTimeSeriesDataForTwoCurrency();
-        this.sliceQuotes();
         this.startWebSocket();
-      }
-    },
-
-    sliceQuotes() {
-      switch (this.selectedResolution) {
-        case "15M":
-          this.quotes = this.quotes.slice(-15);
-          break;
-        case "1H":
-          this.quotes = this.quotes.slice(-12);
-          break;
-        default:
-          break;
-      }
-    },
-    calculateParameters() {
-      let now = new Date();
-      let isSunday = now.getDay() === 0;
-      let isSaturday = now.getDay() === 6;
-
-      let resolution = this.$store.state.selectedResolution;
-      let parameters = {};
-      let startDate = new Date();
-      isSaturday
-        ? startDate.setDate(startDate.getDate() - 1)
-        : isSunday
-        ? startDate.setDate(startDate.getDate() - 2)
-        : startDate;
-      switch (resolution) {
-        case "15M":
-          startDate.setDate(startDate.getDate() - 1);
-          parameters = {
-            startDate,
-            interval: "minute",
-            period: 1,
-          };
-          break;
-        case "1H":
-          startDate.setDate(startDate.getDate() - 1);
-          parameters = {
-            startDate,
-            interval: "minute",
-            period: 5,
-          };
-          break;
-        case "1D":
-          startDate.setDate(startDate.getDate() - 1);
-          parameters = {
-            startDate,
-            interval: "hourly",
-            period: 1,
-          };
-          break;
-        case "1W":
-          startDate.setDate(startDate.getDate() - 7);
-          parameters = {
-            startDate,
-            interval: "daily",
-            period: 1,
-          };
-          break;
-        case "1M":
-          startDate.setDate(startDate.getDate() - 30);
-          parameters = {
-            startDate,
-            interval: "daily",
-            period: 1,
-          };
-          break;
-        default:
-          parameters = {
-            startDate: null,
-            interval: null,
-            period: null,
-          };
-          break;
-      }
-
-      let getFridayIfWeekendOrNow = new Date();
-      if (isSunday) {
-        getFridayIfWeekendOrNow.setDate(getFridayIfWeekendOrNow.getDate() - 2);
-      } else if (isSaturday) {
-        getFridayIfWeekendOrNow.setDate(getFridayIfWeekendOrNow.getDate() - 1);
-      }
-      parameters.interval === "daily"
-        ? (parameters.endDate = getFridayIfWeekendOrNow
-            .toISOString()
-            .split("T")[0])
-        : (parameters.endDate = getFridayIfWeekendOrNow
-            .toISOString()
-            .split(".")[0]
-            .replace("T", " "));
-      parameters.startDate = parameters.startDate?.toISOString().split("T")[0];
-      return parameters;
-    },
-    async getTimeSeriesDataForTwoCurrency() {
-      this.loading = true;
-
-      let { startDate, endDate, interval, period } = this.calculateParameters();
-
-      try {
-        const res = await axios.get(
-          `https://marketdata.tradermade.com/api/v1/timeseries?currency=${
-            this.baseCurrency + this.quoteCurrency
-          }&api_key=${
-            process.env.VUE_APP_REST_API_KEY
-          }&start_date=${startDate}&end_date=${endDate}&format=records&interval=${interval}&period=${period}`
-        );
-        this.startDateOfData = res.data.start_date;
-        this.endDateOfData = res.data.end_date;
-        this.quotes = res.data.quotes;
-        this.loading = false;
-      } catch (error) {
-        console.log(error);
       }
     },
   },
