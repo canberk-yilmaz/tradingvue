@@ -12,7 +12,9 @@
           <span class="">Currency Pair: </span>
           {{ livePriceForSelectedCurrency.currencyPair }}
         </h2>
-        <div class="lg:flex justify-around items-center font-semibold m-2">
+        <div
+          class="flex justify-around items-center font-semibold lg:mx-40 mx-20 my-2"
+        >
           <h2
             class="p-4 m-2 lg:mx-0 mx-auto shadow-md rounded-xl w-min bg-gray-50"
           >
